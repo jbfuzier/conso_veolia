@@ -18,7 +18,8 @@ class VeoliaIdf:
         options = webdriver.FirefoxOptions()
         options.add_argument('-headless')
         options.add_argument("--no-sandbox")
-        self.display = Display(visible=0, size=(800, 600))
+        options.add_argument("window-size=1920x1920")
+        self.display = Display(visible=0, size=(1920, 1920))
         self.display.start()
 
         profile = webdriver.FirefoxProfile()
@@ -48,6 +49,8 @@ class VeoliaIdf:
         url_conso = 'https://espace-client.vedif.eau.veolia.fr/s/historique'
         browser = self.browser
         browser.implicitly_wait(10)
+        browser.set_window_position(0, 0)
+        browser.set_window_size(1920, 1920)
         try:
             browser.get(url_home)
             email_field = browser.find_element_by_css_selector('input[type="email"]')
@@ -65,12 +68,15 @@ class VeoliaIdf:
             self.take_screenshot("1_login_form")
 
             login_button.click()
-            time.sleep(5)
+            time.sleep(30)
             self.take_screenshot("2_logedin_form")
             
             logging.debug('browsing to %s'%url_conso)
             browser.get(url_conso)
-            time.sleep(15)
+            time.sleep(30)
+            dayButton = browser.find_element_by_xpath("//span[contains(.,'Jours')]//parent::button")
+            dayButton.click()
+            time.sleep(30)
             self.take_screenshot("3_conso")
             
             # downloadFileButton = browser.find_element_by_class_name("btn-green.slds-button.slds-button_icon.slds-text-title_caps")
@@ -89,19 +95,19 @@ class VeoliaIdf:
         reader = csv.reader(csv_file, delimiter=';')
         r = [e for e in reader]
         logging.debug(r)
-        if len(r) != 91:
+        if len(r) != 14:
             logging.warning("Unexpected number of lines in csv file")
         j = json.dumps(r)
         jeedom_php_history_veolia_path = os.path.join(config.BASE_DIR, "jeedom_php_history_veolia.php")
         stdout_ = os.system(
-            "php {jeedom_php_history_veolia_path} {jeedom_cmd_index} {jeedom_cmd_conso_24h} '{json_data}'".format(
+            "/usr/bin/php {jeedom_php_history_veolia_path} {jeedom_cmd_index} {jeedom_cmd_conso_24h} '{json_data}'".format(
                 jeedom_php_history_veolia_path=jeedom_php_history_veolia_path,
                 jeedom_cmd_index=config.JEEDOM_CMD_INDEX, 
                 jeedom_cmd_conso_24h=config.JEEDOM_CMD_CONSO_24H, 
                 json_data=j
             )
         )
-        logging.debug(stdout_)
+        logging.debug("From php : %s"%stdout_)
 
     def clean(self):
         logging.debug("cleaning up")
