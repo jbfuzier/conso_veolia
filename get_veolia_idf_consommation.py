@@ -53,7 +53,7 @@ class VeoliaIdf:
         browser.set_window_size(1920, 1920)
         try:
             browser.get(url_home)
-            email_field = browser.find_element_by_css_selector('input[type="email"]')
+            email_field = browser.find_element_by_css_selector('input[inputmode="email"]')
             password_field = browser.find_element_by_css_selector('input[type="password"]')
 
             email_field.clear()
@@ -77,6 +77,9 @@ class VeoliaIdf:
             dayButton = browser.find_element_by_xpath("//span[contains(.,'Jours')]//parent::button")
             dayButton.click()
             time.sleep(30)
+            dayButton = browser.find_element_by_xpath("//span[contains(.,'Litres')]//parent::button")
+            dayButton.click()
+            time.sleep(30)
             self.take_screenshot("3_conso")
             
             # downloadFileButton = browser.find_element_by_class_name("btn-green.slds-button.slds-button_icon.slds-text-title_caps")
@@ -94,8 +97,8 @@ class VeoliaIdf:
         csv_file = open(csv_files[0])
         reader = csv.reader(csv_file, delimiter=';')
         r = [e for e in reader]
-        logging.debug(r)
-        if len(r) != 14:
+        logging.debug("csv content : %s"%r)
+        if not len(r) in (14, 15):
             logging.warning("Unexpected number of lines in csv file")
         j = json.dumps(r)
         jeedom_php_history_veolia_path = os.path.join(config.BASE_DIR, "jeedom_php_history_veolia.php")
